@@ -16,102 +16,64 @@ public:
   std::string value;
 };
 
+class FunctionCall
+{
+public:
+  std::string func;
+  std::vector<std::string> args;
+};
+
 std::map<std::string, std::function<Out(std::vector<std::string>, int)>> funcs;
 
 std::map<std::string, std::string> variables;
 
-
-std::string pop_first_word(std::string& str) {
-    std::istringstream stream(str);
-    std::string firstWord;
-    if(str.find(' ') != std::string::npos)
-    {
-      if (stream >> firstWord) {
-          str = stream.str().substr(stream.tellg());
-          if (str[0] == ' ') { // remove leading space
-              str.erase(0, 1);
-          }
-      } else {
-          str.clear();
-      }
-    } else {
-      std::string st(str);
-      str.clear();
-      return st;
-    }
-    return firstWord;
-}
+std::vector<FunctionCall> all_tokens;
 
 void interpret_file(const char* filename) {
   std::ifstream file(filename);
   std::stringstream buf;
   buf << file.rdbuf();
 
-  const char* c = ((buf.str() + ' ') + '\0').c_str();
-  int ind = 0;
+  std::string code = buf.str();
 
-  bool the_end = false;
-  while(!the_end) {
-    std::string thisline = "";
-    if(c[ind] == '\n' && ind < buf.str().length() - 1)
-    {
-      ind += 1;
-    }
-    while(c[ind] != '\n' && c[ind] != '\0')
-    {
-      thisline.push_back(c[ind]);
-      ind++;
-    }
-    //std::cout << thisline << std::endl;
-    if(thisline.size() > 4)
-    {
+  std::istringstream stream(code);
+      std::string line;
+      while (std::getline(stream, line)) {
+          std::istringstream lineStream(line);
+          std::string word;
+          int index = 0;
+          FunctionCall* currFuncCall = 0;
+          while (lineStream >> word) {
+              //std::cout << word;
+              //std::cout << " ";
+              if(index == 0)
+              {
+                FunctionCall f;
+                f.func = word;
+                all_tokens.push_back(f);
+                currFuncCall = &(all_tokens.back());
+              } else {
+                currFuncCall->args.push_back(word);
+              }
 
-
-      std::vector<std::string> tokens;
-      while(thisline.size() > 0)
-      {
-        tokens.push_back(pop_first_word(thisline));
-      }
-      if(tokens.size() > 0)
-      {
-
-      
-        std::string command = tokens[0];
-
-        //Replace all .variables with their literal values
-
-        for(int i = 0; i < tokens.size(); i++) {
-          std::string& s = tokens[i];
-          if(*s.begin() == '.') {
-            std::string new_s = s;
-            new_s.erase(new_s.begin());
-            if(variables.find(new_s) != variables.end()) {
-              std::string replacement = variables[new_s];
-              tokens[i] = replacement;
-            } else {
-              std::cerr << (std::string("Attempted to use reference to non-existent variable \"") + new_s) + "\"." << std::endl;
-            }
-              
+              index += 1;
           }
-        }
+          if(currFuncCall->func.front() == '.')
+          {
+            currFuncCall->func = variables[currFuncCall->func.substr(1)];
+          }
+          for(int i = 0; i < currFuncCall->args.size(); i++)
+          {
+            if(currFuncCall->args[i].front() == '.') {
+              currFuncCall->args[i] = variables[currFuncCall->args[i].substr(1)];
+            }
+          }
 
-
-        if(funcs.find(command) == funcs.end()) {
-          std::cerr << ((std::string("Attempted to use non-existent function ") + "\"" ) + command ) + "\"" << std::endl;
-        } else {
-          //Call the function with the rest of the string arguments
-          tokens.erase(tokens.begin());
-
-          funcs[command](tokens, tokens.size());
-        }
+          funcs[currFuncCall->func](currFuncCall->args, currFuncCall->args.size());
+          //std::cout << std::endl; 
       }
-    }
-
-    if(c[ind] == '\0')
-    {
-      the_end = true;
-    }
-  }
+  
+  
 }
 
 

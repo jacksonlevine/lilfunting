@@ -1,3 +1,8 @@
 let thisvar 65
 print .thisvar
-set thisvar  
+set thisvar 85
+print .thisvar
+let othervar 42
+print .othervar
+let thirdvar .thisvar
+print .thirdvar
