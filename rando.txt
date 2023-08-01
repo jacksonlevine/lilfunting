@@ -1,11 +1,3 @@
-nacho mo libre,
-
-panko butter crumbs nos machos libres!!!!
-
-Mos libres para no suego su pacho corros muttayukka!!!!
-
-These muthahuggas don't know when 2 quit n when 2 HIT!!!!!
-
-Gotchu puerchos lichos muddayukkas padda yan wa hey!!!!!!!
-
-Puerto ricos muttafuckas!!!!
+let thisvar 65
+print .thisvar
+set thisvar 
